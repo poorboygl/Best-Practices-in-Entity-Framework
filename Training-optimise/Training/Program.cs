@@ -1,37 +1,46 @@
-﻿using Training.Entities;
+﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using Microsoft.EntityFrameworkCore;
 
-class Program
+namespace Training.Benchmarks
 {
-    static void Main(string[] args)
+    [ShortRunJob]
+    [MemoryDiagnoser]
+    public class AsyncVsSyncBenchmark
     {
-       SalesDbContext _context = new SalesDbContext();
-        var saleRecord = GenerateSaleRecords(1500);
+        private SalesDbContext _context;
 
-        //not good
-        //foreach (var record in saleRecord) 
-        //{
-        //    _context.SalesRecords.Add(record);
-        //}
-        _context.SalesRecords.AddRange(saleRecord);
-        _context.SaveChanges();
+        [GlobalSetup]
+        public void Setup()
+        {
+            _context = new SalesDbContext();
+        }
+
+
+
+        [Benchmark]
+        public void FetchDataWithIndex()
+        {
+         var recentSales = _context.SalesRecords
+                          .Where(sr => sr.OrderDate < DateTime.UtcNow.AddYears(-3))
+                          .ToList();
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _context.Dispose();
+        }
+
     }
 
-    static List<SalesRecord> GenerateSaleRecords(int count)
+    class Program
     {
-        int idCount = 1166361;
-        var saleRecords = new List<SalesRecord>();
-        for (int i = 0; i < count; i++)
+        static void Main(string[] args)
         {
-            saleRecords.Add(new SalesRecord
-            {
-                Id = idCount + 1,
-                OrderDate = DateTime.UtcNow.AddDays(-1),
-                TotalProfit = i * 10,
-                CountryID = 1
-            });
+
+
+            BenchmarkRunner.Run<AsyncVsSyncBenchmark>();
         }
-        return saleRecords;
     }
 }
-
-

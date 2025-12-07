@@ -2,7 +2,7 @@
 
 namespace Training.Entities
 {
-    //[Index(nameof(OrderDate), Name = "IX_SalesRecords_OrderDate")]
+    [Index(nameof(OrderDate), Name = "IX_SalesRecords_OrderDate")]
     public class SalesRecord
     {
         public int Id { get; set; }

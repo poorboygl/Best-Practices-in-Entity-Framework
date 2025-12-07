@@ -35,6 +35,11 @@ public class SalesDbContext : DbContext
 
         modelBuilder.Entity<SalesRecord>()
             .HasIndex(sr => sr.OrderDate)
+            //add index
             .HasDatabaseName("IX_SalesRecords_OrderDate");
     }
 }
+
+/*
+ add-migration "add-OrderDate-index-for-SaleRecord"
+ */
