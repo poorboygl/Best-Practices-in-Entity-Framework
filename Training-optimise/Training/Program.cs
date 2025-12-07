@@ -11,20 +11,32 @@ namespace Training.Benchmarks
     [MemoryDiagnoser]
     public class AsyncVsSyncBenchmark
     {
+        private SalesDbContext _context;
+
+        [GlobalSetup]
+        public void Setup()
+        { 
+            _context = new SalesDbContext();
+        }
 
 
         [Benchmark]
-        public void QueryWithTracking()
+        public void FetchAllAndFilterInMemory()
         {
-            using var context = new SalesDbContext();
-            var records = context.SalesRecords.ToList();
+            var allRecords = _context.SalesRecords.ToList();
+            var filteredRecord = allRecords.FirstOrDefault(sr => sr.Id == 1466028);
         }
 
         [Benchmark]
-        public void QueryWithoutTracking()
+        public void FilterAtDatabaseLevel()
         {
-            using var context = new SalesDbContext();
-            var records = context.SalesRecords.AsNoTracking().ToList();
+            var filteredRecord = _context.SalesRecords.FirstOrDefault(sr => sr.Id == 1466028);
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _context.Dispose();
         }
 
     }
