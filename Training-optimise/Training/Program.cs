@@ -1,49 +1,37 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using Microsoft.EntityFrameworkCore;
+﻿using Training.Entities;
 
-namespace Training.Benchmarks
+class Program
 {
-    [ShortRunJob]
-    [MemoryDiagnoser]
-    public class AsyncVsSyncBenchmark
+    static void Main(string[] args)
     {
-        private SalesDbContext _context;
+       SalesDbContext _context = new SalesDbContext();
+        var saleRecord = GenerateSaleRecords(1500);
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _context = new SalesDbContext();
-        }
-
-
-        [Benchmark]
-        public void FetchDataSync()
-        {
-            var sales = _context.SalesRecords
-                                .Sum(sr => sr.TotalProfit);
-        }
-
-        [Benchmark]
-        public void FetchDataAsync()
-        {
-            var sales = _context.SalesRecords
-                                .SumAsync(sr => sr.TotalProfit);
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            _context.Dispose();
-        }
-
+        //not good
+        //foreach (var record in saleRecord) 
+        //{
+        //    _context.SalesRecords.Add(record);
+        //}
+        _context.SalesRecords.AddRange(saleRecord);
+        _context.SaveChanges();
     }
 
-    class Program
+    static List<SalesRecord> GenerateSaleRecords(int count)
     {
-        static void Main(string[] args)
+        int idCount = 1166361;
+        var saleRecords = new List<SalesRecord>();
+        for (int i = 0; i < count; i++)
         {
-            BenchmarkRunner.Run<AsyncVsSyncBenchmark>();
+            saleRecords.Add(new SalesRecord
+            {
+                Id = idCount + 1,
+                OrderDate = DateTime.UtcNow.AddDays(-1),
+                TotalProfit = i * 10,
+                CountryID = 1
+            });
         }
+        return saleRecords;
     }
 }
+
+
