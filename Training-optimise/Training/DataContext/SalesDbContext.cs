@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Training.DataContext;
 using Training.Entities;
 
 public class SalesDbContext : DbContext
@@ -9,7 +10,8 @@ public class SalesDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql("Host=192.168.50.2:5433;Database=Sale;Username=postgres;Password=postgresPsw");
+        optionsBuilder.UseNpgsql("Host=192.168.50.2:5433;Database=Sale;Username=postgres;Password=postgresPsw")
+            .AddInterceptors(new CommandTimeOutInterceptor());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

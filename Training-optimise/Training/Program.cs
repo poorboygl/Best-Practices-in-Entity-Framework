@@ -1,51 +1,20 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Training.Entities;
 
-namespace Training.Benchmarks
+public class Program
 {
-    [ShortRunJob]
-    [MemoryDiagnoser]
-    public class AsyncVsSyncBenchmark
+    public static async Task Main(string[] args)
     {
-        private SalesDbContext _context;
+        using var context = new SalesDbContext();
 
-        [GlobalSetup]
-        public void Setup()
-        { 
-            _context = new SalesDbContext();
-        }
-
-
-        [Benchmark]
-        public void FetchAllAndFilterInMemory()
+        try 
         {
-            var allRecords = _context.SalesRecords.ToList();
-            var filteredRecord = allRecords.FirstOrDefault(sr => sr.Id == 1466028);
+            var insertCommand = @"select pg_sleep(10); Insert INTO public. ""Regions"" (""id"", ""Name"") Values (65, 'New Region')";
+            await context.Database.ExecuteSqlRawAsync(insertCommand);
         }
-
-        [Benchmark]
-        public void FilterAtDatabaseLevel()
+        catch(Exception ex)
         {
-            var filteredRecord = _context.SalesRecords.FirstOrDefault(sr => sr.Id == 1466028);
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            _context.Dispose();
-        }
-
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            BenchmarkRunner.Run<AsyncVsSyncBenchmark>();
+            Console.WriteLine(ex.Message);
         }
     }
 }
