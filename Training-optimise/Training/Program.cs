@@ -1,20 +1,49 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using Microsoft.EntityFrameworkCore;
 
-public class Program
+namespace Training.Benchmarks
 {
-    public static async Task Main(string[] args)
+    [ShortRunJob]
+    [MemoryDiagnoser]
+    public class AsyncVsSyncBenchmark
     {
-        using var context = new SalesDbContext();
+        private SalesDbContext _context;
 
-        try 
+        [GlobalSetup]
+        public void Setup()
         {
-            var insertCommand = @"select pg_sleep(10); Insert INTO public. ""Regions"" (""id"", ""Name"") Values (65, 'New Region')";
-            await context.Database.ExecuteSqlRawAsync(insertCommand);
+            _context = new SalesDbContext();
         }
-        catch(Exception ex)
+
+
+        [Benchmark]
+        public void FetchDataSync()
         {
-            Console.WriteLine(ex.Message);
+            var sales = _context.SalesRecords
+                                .Sum(sr => sr.TotalProfit);
+        }
+
+        [Benchmark]
+        public void FetchDataAsync()
+        {
+            var sales = _context.SalesRecords
+                                .SumAsync(sr => sr.TotalProfit);
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _context.Dispose();
+        }
+
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            BenchmarkRunner.Run<AsyncVsSyncBenchmark>();
         }
     }
 }
