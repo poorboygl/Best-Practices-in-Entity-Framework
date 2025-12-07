@@ -14,29 +14,17 @@ namespace Training.Benchmarks
 
 
         [Benchmark]
-        public void LoadSalesRecordsNPlusOne()
+        public void QueryWithTracking()
         {
             using var context = new SalesDbContext();
-
-            var countries = context.Countries.ToList();
-
-            foreach (var country in countries)
-            {
-                var saleRecords = context.SalesRecords
-                                          .Where(sr => sr.CountryID == country.ID)
-                                          .ToList();
-                country.SalesRecords = saleRecords;
-            }
-      
+            var records = context.SalesRecords.ToList();
         }
 
         [Benchmark]
-        public void LoadSalesRecordsWithInClude()
+        public void QueryWithoutTracking()
         {
             using var context = new SalesDbContext();
-            var CountryWithSaleRecords = context.Countries
-                                         .Include(c => c.SalesRecords)
-                                         .ToList();
+            var records = context.SalesRecords.AsNoTracking().ToList();
         }
 
     }
