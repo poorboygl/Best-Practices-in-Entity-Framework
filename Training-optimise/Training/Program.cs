@@ -16,13 +16,25 @@ namespace Training.Benchmarks
             _context = new SalesDbContext();
         }
 
+        [Benchmark]
+        public void FetchAllFields()
+        {
+            var record = _context.SalesRecords                         
+                             .ToList();
+        }
 
 
         [Benchmark]
-        public void FetchDataWithIndex()
+        public void FetchProjectedFields()
         {
-         var recentSales = _context.SalesRecords
-                          .Where(sr => sr.OrderDate < DateTime.UtcNow.AddYears(-3))
+         var record = _context.SalesRecords
+                          .Select(sr => new
+                          {
+                              sr.Id,
+                              sr.SalesChannel,
+                              sr.OrderDate,
+                              sr.TotalProfit
+                          })
                           .ToList();
         }
 
